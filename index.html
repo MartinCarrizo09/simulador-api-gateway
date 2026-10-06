@@ -1,0 +1,456 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Simulador de API Gateway</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --fondo:#f4f6fb; --tarjeta:#ffffff; --tarjeta2:#f1f4f9; --tinta:#111827; --gris:#5b6479; --borde:#dfe5ef;
+  --acento:#4338ca; --acento-suave:#eef0ff; --gw:#7c3aed; --pla:#0e7490; --maq:#c2410c; --soc:#be185d; --v2:#0f766e; --echo:#475569;
+  --ok:#059669; --ok-suave:#e6f6ef; --mal:#dc2626; --mal-suave:#fde8e8; --warn:#b45309; --warn-suave:#fff4e0;
+  --f-tit:"Sora",system-ui,sans-serif; --f-txt:"IBM Plex Sans",system-ui,sans-serif; --f-cod:"IBM Plex Mono",ui-monospace,Consolas,monospace;
+  --sombra:0 8px 26px rgba(17,24,39,.07);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--fondo);color:var(--tinta);font:16px/1.5 var(--f-txt)}
+.contenedor{max-width:1120px;margin:0 auto;padding:0 16px}
+header{padding:22px 0 10px}
+.cabecera{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px}
+.logo{font:600 15px var(--f-cod);background:#fff;border:1px solid var(--borde);border-radius:12px;padding:8px 12px;box-shadow:var(--sombra)}
+.logo b{color:var(--gw)}
+.cabecera h1{font:800 28px var(--f-tit);margin:0}
+.cabecera p{margin:2px 0 0;color:var(--gris)}
+nav{margin-left:auto;display:flex;gap:4px;background:#fff;border:1px solid var(--borde);border-radius:14px;padding:4px;box-shadow:var(--sombra)}
+nav button{border:0;background:transparent;font:600 15px var(--f-txt);color:var(--gris);padding:8px 16px;border-radius:10px;cursor:pointer}
+nav button.on{background:var(--tinta);color:#fff}
+section[hidden]{display:none}
+.bloque{background:var(--tarjeta);border:1px solid var(--borde);border-radius:18px;box-shadow:var(--sombra);padding:18px 20px;margin-top:16px}
+h2{font:700 20px var(--f-tit);margin:0 0 10px}
+h3{font:700 16px var(--f-tit);margin:0 0 8px}
+.muted{color:var(--gris)}
+code{font:14px var(--f-cod);background:var(--tarjeta2);border-radius:6px;padding:1px 6px;overflow-wrap:anywhere}
+.btn{border:0;background:var(--acento);color:#fff;font:600 15px var(--f-txt);border-radius:12px;padding:10px 18px;cursor:pointer}
+.btn.sec{background:#fff;color:var(--tinta);border:1px solid var(--borde)}
+.btn.chico{padding:6px 10px;font-size:14px}
+.btn:disabled{opacity:.4;cursor:default}
+/* camino de niveles */
+.camino{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+.camino button{border:1px solid var(--borde);background:#fff;border-radius:12px;padding:8px 12px;font:600 14px var(--f-txt);cursor:pointer;color:var(--tinta);min-width:58px}
+.camino button.actual{border-color:var(--acento);background:var(--acento-suave);color:var(--acento)}
+.camino button.hecho{border-color:var(--ok);color:var(--ok)}
+.camino button small{display:block;font-size:12px;letter-spacing:1px}
+/* consigna */
+.consigna{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
+@media (max-width:860px){.consigna{grid-template-columns:minmax(0,1fr)}}
+.consigna .nivel-tit{font:800 22px var(--f-tit);margin:0}
+.consigna p{margin:8px 0}
+.servicios{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.servicio{font:600 14px var(--f-cod);border:2px solid var(--c);color:var(--c);border-radius:10px;padding:4px 10px;background:#fff}
+table.pedidos{width:100%;border-collapse:collapse;font-size:15px}
+table.pedidos th{text-align:left;font:600 12px var(--f-tit);text-transform:uppercase;letter-spacing:.06em;color:var(--gris);padding:6px 6px;border-bottom:1px solid var(--borde)}
+table.pedidos td{padding:7px 6px;border-bottom:1px solid var(--borde);vertical-align:top}
+table.pedidos td code{font-size:13.5px}
+.res-ok{color:var(--ok);font-weight:700}
+.res-mal{color:var(--mal);font-weight:700}
+/* editor de rutas */
+.rutas{display:flex;flex-direction:column;gap:12px}
+.ruta{border:1px solid var(--borde);border-left:6px solid var(--gw);border-radius:14px;padding:12px 14px;background:#fff}
+.ruta .fila-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.ruta .orden{font:800 18px var(--f-tit);color:var(--gw);width:26px}
+.campos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+@media (max-width:860px){.campos{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:520px){.campos{grid-template-columns:minmax(0,1fr)}}
+.campo label{display:block;font:600 12.5px var(--f-tit);text-transform:uppercase;letter-spacing:.05em;color:var(--gris);margin-bottom:4px}
+.campo .tipo{font:600 11px var(--f-txt);border-radius:99px;padding:1px 7px;margin-left:4px;text-transform:none;letter-spacing:0}
+.campo .tipo.pred{background:#ede9fe;color:var(--gw)}
+.campo .tipo.filt{background:var(--warn-suave);color:var(--warn)}
+input[type=text],select{width:100%;font:14px var(--f-cod);padding:8px 10px;border:1px solid var(--borde);border-radius:10px;background:var(--tarjeta2);color:var(--tinta)}
+select{font-family:var(--f-txt)}
+.par{display:flex;gap:6px}
+.par input{min-width:0}
+.ruta .id{max-width:180px}
+.codigo{background:#0f172a;color:#e2e8f0;border-radius:14px;padding:14px 16px;font:13.5px/1.55 var(--f-cod);white-space:pre;overflow:auto;margin:0}
+.codigo .k{color:#c4b5fd} .codigo .s{color:#86efac} .codigo .c{color:#94a3b8}
+.acciones{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
+.resultado{margin-top:14px;padding:12px 14px;border-radius:12px;font-weight:600;display:none}
+.resultado.on{display:block}
+.resultado.bien{background:var(--ok-suave);color:var(--ok)}
+.resultado.mal{background:var(--mal-suave);color:var(--mal)}
+.estrellas{font-size:24px;letter-spacing:4px;color:#f59e0b}
+.pistas{margin-top:10px}
+.pista{display:none;background:var(--tarjeta2);border-radius:10px;padding:8px 12px;margin-top:8px}
+.pista.on{display:block}
+/* laboratorio */
+.lab{display:grid;grid-template-columns:110px minmax(0,1fr) minmax(0,1fr) auto;gap:8px;align-items:end}
+@media (max-width:760px){.lab{grid-template-columns:minmax(0,1fr)}}
+.viaje{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;font:600 15px var(--f-cod)}
+.viaje .paso{border:2px solid var(--c);color:var(--c);border-radius:12px;padding:8px 12px;background:#fff}
+.viaje .flecha{color:var(--gris)}
+/* guía */
+.guia{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+@media (max-width:760px){.guia{grid-template-columns:minmax(0,1fr)}}
+dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:8px 14px}
+dt{font:600 14px var(--f-cod);color:var(--c)}
+dd{margin:0;color:var(--gris)}
+.pie-borrar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 16px;margin:40px auto 24px;max-width:1080px;padding:18px 16px;border-top:1px dashed var(--borde);color:var(--gris);font-size:14px;text-align:center}
+.pie-borrar button{font:600 14.5px var(--f-txt);border:1.5px solid var(--borde);background:#fff;color:var(--tinta);border-radius:12px;padding:9px 16px;cursor:pointer}
+.pie-borrar button:hover,.pie-borrar button.armado{border-color:var(--mal);color:var(--mal)}
+</style>
+</head>
+<body>
+<div class="contenedor">
+<header>
+  <div class="cabecera">
+    <span class="logo">cliente → <b>gateway</b> → servicio</span>
+    <div><h1>Simulador de API Gateway</h1><p>Armá las rutas y mirá a dónde va cada pedido.</p></div>
+    <nav><button data-s="desafios" class="on">Desafíos</button><button data-s="lab">Laboratorio</button><button data-s="guia">Guía rápida</button></nav>
+  </div>
+</header>
+
+<!-- ================= DESAFÍOS ================= -->
+<section id="desafios">
+  <div class="camino" id="camino"></div>
+  <div class="bloque consigna">
+    <div>
+      <div class="muted" id="nNum"></div>
+      <h2 class="nivel-tit" id="nTitulo"></h2>
+      <p id="nConsigna"></p>
+      <div class="servicios" id="nServicios"></div>
+      <div class="pistas" id="nPistas"></div>
+    </div>
+    <div>
+      <h3>Los pedidos que tienen que andar</h3>
+      <table class="pedidos" id="nPedidos"></table>
+    </div>
+  </div>
+  <div class="bloque">
+    <h2>Tus rutas <span class="muted" style="font:500 15px var(--f-txt)">· se prueban en orden: gana la primera que coincide</span></h2>
+    <div class="rutas" id="nRutas"></div>
+    <div class="acciones">
+      <button class="btn sec" id="nAgregar">+ Agregar ruta</button>
+      <button class="btn" id="nProbar">Probar los pedidos</button>
+      <button class="btn sec" id="nReiniciar">Empezar el nivel de nuevo</button>
+    </div>
+    <div class="resultado" id="nResultado"></div>
+  </div>
+  <div class="bloque">
+    <h2>El mismo gateway, en Java</h2>
+    <pre class="codigo" id="nCodigo"></pre>
+  </div>
+</section>
+
+<!-- ================= LABORATORIO ================= -->
+<section id="lab" hidden>
+  <div class="bloque">
+    <h2>Laboratorio libre</h2>
+    <p class="muted">Armá cualquier configuración y mandá el pedido que quieras. Nada se corrige: es para experimentar.</p>
+    <div class="rutas" id="lRutas"></div>
+    <div class="acciones"><button class="btn sec" id="lAgregar">+ Agregar ruta</button></div>
+  </div>
+  <div class="bloque">
+    <h2>Mandar un pedido al gateway (puerto 8080)</h2>
+    <div class="lab">
+      <div class="campo"><label>Verbo</label><select id="lMetodo"><option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option></select></div>
+      <div class="campo"><label>Path</label><input type="text" id="lPath" value="/api/maquinas/3" spellcheck="false"></div>
+      <div class="campo"><label>Header (opcional)</label><div class="par"><input type="text" id="lHn" placeholder="nombre" spellcheck="false"><input type="text" id="lHv" placeholder="valor" spellcheck="false"></div></div>
+      <button class="btn" id="lEnviar">Enviar</button>
+    </div>
+    <div class="viaje" id="lViaje"></div>
+    <p class="muted" id="lExplica"></p>
+  </div>
+  <div class="bloque">
+    <h2>En Java</h2>
+    <pre class="codigo" id="lCodigo"></pre>
+  </div>
+</section>
+
+<!-- ================= GUÍA RÁPIDA ================= -->
+<section id="guia" hidden>
+  <div class="guia">
+    <div class="bloque" style="--c:var(--gw)"><h2>Predicados: ¿esta ruta se activa?</h2><dl>
+      <dt>path("/api/x/**")</dt><dd>el path empieza con /api/x. <code>**</code> es "todo lo que siga" (también nada)</dd>
+      <dt>path("/api/x/*")</dt><dd>exactamente un tramo más: /api/x/7 sí, /api/x/7/y no</dd>
+      <dt>method("GET")</dt><dd>solo ese verbo HTTP</dd>
+      <dt>header("X-Version", "2")</dt><dd>el pedido trae ese header con ese valor</dd>
+      <dt>host("api.gym.com")</dt><dd>el pedido se hizo a ese host</dd>
+      <dt>query("debug")</dt><dd>la URL trae ese parámetro</dd>
+      <dt>before(…) / after(…)</dt><dd>antes o después de una fecha</dd>
+      <dt>.and() / .or()</dt><dd>combinar predicados</dd></dl></div>
+    <div class="bloque" style="--c:var(--warn)"><h2>Filtros: ¿qué le cambio?</h2><dl>
+      <dt>rewritePath(a, b)</dt><dd>cambia el path antes de reenviarlo (pre-filtro)</dd>
+      <dt>addRequestHeader(n, v)</dt><dd>agrega un header al pedido que llega al servicio (pre-filtro)</dd>
+      <dt>addResponseHeader(n, v)</dt><dd>agrega un header a la respuesta que vuelve al cliente (post-filtro)</dd>
+      <dt>setStatus(…)</dt><dd>cambia el código de respuesta</dd>
+      <dt>stripPrefix(1)</dt><dd>saca el primer tramo del path</dd>
+      <dt>requestRateLimiter(…)</dt><dd>limita cuántos pedidos por segundo</dd></dl>
+      <p class="muted" style="margin-top:12px">Si ninguna ruta coincide, el gateway responde <b>404</b> sin llamar a nadie. Si el servicio está caído, responde con un error (500 en el práctico).</p></div>
+    <div class="bloque" style="--c:var(--acento)"><h2>Una ruta completa</h2>
+<pre class="codigo">.route(<span class="s">"maquinas"</span>, r -> r.path(<span class="s">"/api/maquinas/**"</span>)
+        .and().method(<span class="s">"GET"</span>)
+        .filters(f -> f.addResponseHeader(<span class="s">"X-Gateway"</span>, <span class="s">"fuerzagym"</span>))
+        .uri(<span class="s">"http://localhost:8081"</span>))</pre>
+      <p class="muted">id · predicados · filtros · destino. Va dentro de <code>builder.routes() … .build()</code>, en un <code>@Bean RouteLocator</code>.</p></div>
+    <div class="bloque" style="--c:var(--pla)"><h2>Los servicios de este simulador</h2><dl id="gServicios"></dl></div>
+  </div>
+</section>
+
+<footer class="pie-borrar"><button id="borrarTodo" type="button">Borrar mis cambios</button><span>Borra las estrellas y las rutas guardadas en este navegador.</span></footer>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const $$ = s => Array.from(document.querySelectorAll(s));
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const CLAVE = 'simulador-api-gateway';
+
+// ------------------------------------------------------------------ servicios
+const SERVICIOS = {
+  maq: { n: 'ms-maquinas', uri: 'http://localhost:8081', c: 'var(--maq)' },
+  pla: { n: 'ms-planes', uri: 'http://localhost:8082', c: 'var(--pla)' },
+  v2: { n: 'ms-planes-v2', uri: 'http://localhost:8084', c: 'var(--v2)' },
+  soc: { n: 'ms-socios', uri: 'http://localhost:8083', c: 'var(--soc)' },
+  echo: { n: 'postman-echo', uri: 'https://postman-echo.com', c: 'var(--echo)' }
+};
+$('#gServicios').innerHTML = Object.values(SERVICIOS).map(s => '<dt style="--c:' + s.c + '">' + s.n + '</dt><dd>' + s.uri + '</dd>').join('');
+
+// ------------------------------------------------------------------ motor: ¿a dónde va el pedido?
+// Como PathPattern de Spring: "/**" al final = nada o cualquier cosa; "*" = un solo tramo
+function coincidePath(pathRuta, path) {
+  if (!pathRuta || !pathRuta.trim()) return false;
+  let r = pathRuta.trim().replace(/[.+?^${}()|[\]\\]/g, '\\$&');
+  r = r.replace(/\/\*\*$/, '\u0001').replace(/\*\*/g, '\u0002').replace(/\*/g, '[^/]*')
+       .replace('\u0001', '(?:/.*)?').replace(/\u0002/g, '.*');
+  return new RegExp('^' + r + '$').test(path);
+}
+function reescribir(path, desde, hacia) {
+  if (!desde) return path;
+  if (path === desde) return hacia || '/';
+  if (path.startsWith(desde + '/')) return (hacia || '') + path.slice(desde.length);
+  return path;
+}
+function rutear(rutas, pedido) {
+  for (let i = 0; i < rutas.length; i++) {
+    const r = rutas[i];
+    if (!coincidePath(r.path, pedido.p)) continue;
+    if (r.metodo && r.metodo !== pedido.m) continue;
+    if (r.hn && r.hn.trim()) {
+      const v = (pedido.h || {})[r.hn.trim().toLowerCase()];
+      if (v === undefined || (r.hv && r.hv.trim() && v !== r.hv.trim())) continue;
+    }
+    const destinoPath = reescribir(pedido.p, (r.rwDesde || '').trim(), (r.rwHacia || '').trim());
+    const headers = r.rhn && r.rhn.trim() ? { [r.rhn.trim()]: (r.rhv || '').trim() } : {};
+    return { ruta: i, id: r.id, servicio: r.destino, path: destinoPath, headers };
+  }
+  return { ruta: -1, servicio: null, path: null, headers: {} };
+}
+
+// ------------------------------------------------------------------ Java
+const S = t => '<span class="s">"' + esc(t) + '"</span>';
+function aJava(rutas) {
+  const lineas = ['<span class="k">return</span> builder.routes()'];
+  rutas.forEach(r => {
+    if (!r.path || !r.path.trim()) { lineas.push('        <span class="c">// ruta "' + esc(r.id || '?') + '": falta el path</span>'); return; }
+    let l = '        .route(' + S(r.id || 'ruta') + ', r -> r.path(' + S(r.path.trim()) + ')';
+    if (r.metodo) l += '\n                .and().method(' + S(r.metodo) + ')';
+    if (r.hn && r.hn.trim()) l += '\n                .and().header(' + S(r.hn.trim()) + (r.hv && r.hv.trim() ? ', ' + S(r.hv.trim()) : '') + ')';
+    const filtros = [];
+    if (r.rwDesde && r.rwDesde.trim()) filtros.push('rewritePath(' + S(r.rwDesde.trim() + '(?<resto>.*)') + ', ' + S((r.rwHacia || '').trim() + '${resto}') + ')');
+    if (r.rhn && r.rhn.trim()) filtros.push('addResponseHeader(' + S(r.rhn.trim()) + ', ' + S((r.rhv || '').trim()) + ')');
+    if (filtros.length) l += '\n                .filters(f -> f.' + filtros.join('\n                        .') + ')';
+    l += '\n                .uri(' + S(SERVICIOS[r.destino] ? SERVICIOS[r.destino].uri : '?') + '))';
+    lineas.push(l);
+  });
+  lineas.push('        .build();');
+  return lineas.join('\n');
+}
+
+// ------------------------------------------------------------------ editor de rutas
+const rutaVacia = n => ({ id: 'ruta' + n, path: '', metodo: '', hn: '', hv: '', rwDesde: '', rwHacia: '', rhn: '', rhv: '', destino: 'maq' });
+function editor(cont, rutas, alCambiar) {
+  function pintar() {
+    cont.innerHTML = rutas.length ? '' : '<p class="muted">Todavía no hay rutas: el gateway respondería 404 a todo. Tocá "Agregar ruta".</p>';
+    rutas.forEach((r, i) => {
+      const d = document.createElement('div');
+      d.className = 'ruta';
+      d.innerHTML =
+        '<div class="fila-top"><span class="orden">' + (i + 1) + '</span><input type="text" class="id" data-k="id" value="' + esc(r.id) + '" spellcheck="false" aria-label="Nombre de la ruta">' +
+        '<span style="flex:1"></span><button class="btn sec chico" data-a="sube" ' + (i === 0 ? 'disabled' : '') + ' title="Subir">↑</button><button class="btn sec chico" data-a="baja" ' + (i === rutas.length - 1 ? 'disabled' : '') + ' title="Bajar">↓</button><button class="btn sec chico" data-a="borra" title="Borrar">✕</button></div>' +
+        '<div class="campos">' +
+        '<div class="campo"><label>Path <span class="tipo pred">predicado</span></label><input type="text" data-k="path" value="' + esc(r.path) + '" placeholder="/api/algo/**" spellcheck="false"></div>' +
+        '<div class="campo"><label>Verbo <span class="tipo pred">predicado</span></label><select data-k="metodo"><option value="">cualquiera</option>' + ['GET', 'POST', 'PUT', 'DELETE'].map(m => '<option' + (r.metodo === m ? ' selected' : '') + '>' + m + '</option>').join('') + '</select></div>' +
+        '<div class="campo"><label>Header <span class="tipo pred">predicado</span></label><div class="par"><input type="text" data-k="hn" value="' + esc(r.hn) + '" placeholder="nombre" spellcheck="false"><input type="text" data-k="hv" value="' + esc(r.hv) + '" placeholder="valor" spellcheck="false"></div></div>' +
+        '<div class="campo"><label>Se reenvía a</label><select data-k="destino">' + Object.keys(SERVICIOS).map(k => '<option value="' + k + '"' + (r.destino === k ? ' selected' : '') + '>' + SERVICIOS[k].n + '</option>').join('') + '</select></div>' +
+        '<div class="campo" style="grid-column:span 2"><label>Reescribir el path <span class="tipo filt">filtro</span></label><div class="par"><input type="text" data-k="rwDesde" value="' + esc(r.rwDesde) + '" placeholder="si empieza con /gym" spellcheck="false"><input type="text" data-k="rwHacia" value="' + esc(r.rwHacia) + '" placeholder="cambialo por /api" spellcheck="false"></div></div>' +
+        '<div class="campo" style="grid-column:span 2"><label>Header en la respuesta <span class="tipo filt">filtro</span></label><div class="par"><input type="text" data-k="rhn" value="' + esc(r.rhn) + '" placeholder="nombre" spellcheck="false"><input type="text" data-k="rhv" value="' + esc(r.rhv) + '" placeholder="valor" spellcheck="false"></div></div>' +
+        '</div>';
+      d.querySelectorAll('[data-k]').forEach(el => el.oninput = el.onchange = () => { r[el.dataset.k] = el.value; alCambiar(false); });
+      d.querySelectorAll('[data-a]').forEach(b => b.onclick = () => {
+        if (b.dataset.a === 'borra') rutas.splice(i, 1);
+        if (b.dataset.a === 'sube' && i > 0) [rutas[i - 1], rutas[i]] = [rutas[i], rutas[i - 1]];
+        if (b.dataset.a === 'baja' && i < rutas.length - 1) [rutas[i + 1], rutas[i]] = [rutas[i], rutas[i + 1]];
+        pintar(); alCambiar(true);
+      });
+      cont.appendChild(d);
+    });
+  }
+  pintar();
+  return { pintar, agregar() { rutas.push(rutaVacia(rutas.length + 1)); pintar(); alCambiar(true); } };
+}
+
+// ------------------------------------------------------------------ niveles
+const R = (id, path, destino, extra) => Object.assign(rutaVacia(0), { id, path, destino }, extra || {});
+const NIVELES = [
+  { t: 'Una sola puerta', c: 'Todo lo que empiece con <code>/api/maquinas</code> tiene que llegar a <b>ms-maquinas</b>, con el mismo path.',
+    serv: ['maq'], ini: [],
+    pedidos: [['GET', '/api/maquinas', null, 'maq', '/api/maquinas'], ['GET', '/api/maquinas/3', null, 'maq', '/api/maquinas/3']],
+    pistas: ['Agregá una ruta. El path tiene que cubrir /api/maquinas y todo lo que siga.', 'En Spring Cloud Gateway, "todo lo que siga" se escribe con <code>/**</code> al final.', 'Path <code>/api/maquinas/**</code> → ms-maquinas.'] },
+  { t: 'Dos servicios', c: 'Ahora también hay planes: lo que empiece con <code>/api/planes</code> va a <b>ms-planes</b>.',
+    serv: ['maq', 'pla'], ini: [R('maquinas', '/api/maquinas/**', 'maq')],
+    pedidos: [['GET', '/api/maquinas/1', null, 'maq', '/api/maquinas/1'], ['GET', '/api/planes/2', null, 'pla', '/api/planes/2'], ['POST', '/api/planes', null, 'pla', '/api/planes']],
+    pistas: ['La ruta de máquinas ya está. Falta una para planes.', 'Path <code>/api/planes/**</code> → ms-planes.'] },
+  { t: 'Lo que no tiene ruta, 404', c: 'Alguien dejó una ruta demasiado amplia que se queda con todo. Arreglala: <code>/api/socios</code> todavía no existe y tiene que dar <b>404</b> del gateway.',
+    serv: ['maq', 'pla'], ini: [R('todo', '/api/**', 'maq')],
+    pedidos: [['GET', '/api/maquinas/1', null, 'maq', '/api/maquinas/1'], ['GET', '/api/planes/1', null, 'pla', '/api/planes/1'], ['GET', '/api/socios/1', null, null, null]],
+    pistas: ['<code>/api/**</code> agarra cualquier cosa que empiece con /api, incluso /api/socios.', 'Cambiá esa ruta por una de máquinas y agregá otra de planes. Lo que no coincide con ninguna da 404.'] },
+  { t: 'Solo lectura', c: 'Por el gateway, las máquinas solo se pueden <b>leer</b>. Un DELETE o un POST a máquinas no tiene que llegar a ms-maquinas: 404 del gateway.',
+    serv: ['maq'], ini: [R('maquinas', '/api/maquinas/**', 'maq')],
+    pedidos: [['GET', '/api/maquinas/1', null, 'maq', '/api/maquinas/1'], ['DELETE', '/api/maquinas/1', null, null, null], ['POST', '/api/maquinas', null, null, null]],
+    pistas: ['Además del path, un predicado puede mirar el verbo.', 'En la ruta de máquinas elegí Verbo: GET.'] },
+  { t: 'El orden importa', c: 'Hay una versión nueva de planes (<b>ms-planes-v2</b>) solo para quien manda el header <code>X-Version: 2</code>. Las rutas ya están, pero algo falla.',
+    serv: ['pla', 'v2'], ini: [R('planes', '/api/planes/**', 'pla'), R('planes-v2', '/api/planes/**', 'v2', { hn: 'X-Version', hv: '2' })],
+    pedidos: [['GET', '/api/planes/1', null, 'pla', '/api/planes/1'], ['GET', '/api/planes/1', { 'x-version': '2' }, 'v2', '/api/planes/1']],
+    pistas: ['Las rutas se prueban de arriba hacia abajo y gana la primera que coincide.', 'La ruta "planes" coincide también con los pedidos que traen el header. Subí "planes-v2" para que se pruebe primero.'] },
+  { t: 'Caminos cortos', c: 'La app del gimnasio pide <code>/gym/maquinas/…</code> y <code>/gym/planes/…</code>, pero los servicios esperan <code>/api/…</code>. El gateway tiene que reescribir el path.',
+    serv: ['maq', 'pla'], ini: [],
+    pedidos: [['GET', '/gym/maquinas/3', null, 'maq', '/api/maquinas/3'], ['GET', '/gym/planes/1', null, 'pla', '/api/planes/1']],
+    pistas: ['Necesitás dos rutas, una por servicio: path <code>/gym/maquinas/**</code> y <code>/gym/planes/**</code>.', 'En cada una usá el filtro "Reescribir el path": si empieza con <code>/gym</code>, cambialo por <code>/api</code>.'] },
+  { t: 'La firma del gateway', c: 'Todo lo que vuelve por el gateway tiene que traer el header <code>X-Gateway: fuerzagym</code> (como la misión 5 del práctico).',
+    serv: ['maq', 'pla'], ini: [R('maquinas', '/api/maquinas/**', 'maq'), R('planes', '/api/planes/**', 'pla')],
+    pedidos: [['GET', '/api/maquinas/1', null, 'maq', '/api/maquinas/1', 'X-Gateway'], ['GET', '/api/planes/1', null, 'pla', '/api/planes/1', 'X-Gateway']],
+    pistas: ['Es un filtro que actúa sobre la respuesta.', 'En las dos rutas completá "Header en la respuesta": <code>X-Gateway</code> = <code>fuerzagym</code>.'] },
+  { t: 'El ejemplo del apunte', c: 'Como en el Apunte 19: un pedido a <code>/echo</code> tiene que llegar a <b>postman-echo</b> como <code>/get</code>. Y que lo demás de FuerzaGym siga andando.',
+    serv: ['echo', 'maq', 'pla'], ini: [R('maquinas', '/api/maquinas/**', 'maq'), R('planes', '/api/planes/**', 'pla')],
+    pedidos: [['GET', '/echo', null, 'echo', '/get'], ['GET', '/api/maquinas/2', null, 'maq', '/api/maquinas/2'], ['GET', '/api/planes/3', null, 'pla', '/api/planes/3']],
+    pistas: ['Una ruta nueva con path <code>/echo</code> que vaya a postman-echo.', 'Con el filtro de reescritura: si empieza con <code>/echo</code>, cambialo por <code>/get</code>.'] }
+];
+
+let estado = { nivel: 0, estrellas: {}, rutas: {}, intentos: {} };
+try { const g = JSON.parse(localStorage.getItem(CLAVE) || 'null'); if (g && g.estrellas) estado = Object.assign(estado, g); } catch (e) {}
+const guardar = () => { try { localStorage.setItem(CLAVE, JSON.stringify(estado)); } catch (e) {} };
+const copia = o => JSON.parse(JSON.stringify(o));
+let rutasNivel = [], ed = null, pistasVistas = 0;
+
+function pintarCamino() {
+  $('#camino').innerHTML = NIVELES.map((n, i) => {
+    const e = estado.estrellas[i];
+    return '<button data-i="' + i + '" class="' + (i === estado.nivel ? 'actual ' : '') + (e !== undefined ? 'hecho' : '') + '">' + (i + 1) +
+      '<small>' + (e !== undefined ? '★'.repeat(e) + '☆'.repeat(3 - e) : '☆☆☆') + '</small></button>';
+  }).join('');
+  $$('#camino button').forEach(b => b.onclick = () => { estado.nivel = +b.dataset.i; guardar(); cargarNivel(); });
+}
+function nombreSrv(k) { return k ? '<span style="color:' + SERVICIOS[k].c + ';font-weight:600">' + SERVICIOS[k].n + '</span>' : '<span class="res-mal">404 del gateway</span>'; }
+function pintarPedidos(resultados) {
+  const n = NIVELES[estado.nivel];
+  $('#nPedidos').innerHTML = '<tr><th>Pedido</th><th>Tiene que llegar a</th><th>Llega a</th></tr>' + n.pedidos.map((p, i) => {
+    const r = resultados && resultados[i];
+    const esperado = p[3] ? nombreSrv(p[3]) + ' <code>' + p[4] + '</code>' + (p[5] ? '<br>con header <code>' + p[5] + '</code>' : '') : nombreSrv(null);
+    let llega = '<span class="muted">—</span>';
+    if (r) llega = (r.ok ? '<span class="res-ok">✔</span> ' : '<span class="res-mal">✖</span> ') + (r.servicio ? nombreSrv(r.servicio) + ' <code>' + esc(r.path) + '</code>' + (Object.keys(r.headers).length ? '<br>header <code>' + esc(Object.keys(r.headers)[0] + ': ' + Object.values(r.headers)[0]) + '</code>' : '') : nombreSrv(null)) + (r.ruta >= 0 ? '<br><span class="muted">por la ruta ' + (r.ruta + 1) + '</span>' : '');
+    return '<tr><td><code>' + p[0] + ' ' + p[1] + '</code>' + (p[2] ? '<br><span class="muted">header ' + esc(Object.keys(p[2])[0]) + ': ' + esc(Object.values(p[2])[0]) + '</span>' : '') + '</td><td>' + esperado + '</td><td>' + llega + '</td></tr>';
+  }).join('');
+}
+function cargarNivel() {
+  const n = NIVELES[estado.nivel];
+  rutasNivel = estado.rutas[estado.nivel] ? copia(estado.rutas[estado.nivel]) : copia(n.ini);
+  pistasVistas = 0;
+  $('#nNum').textContent = 'Nivel ' + (estado.nivel + 1) + ' de ' + NIVELES.length;
+  $('#nTitulo').textContent = n.t;
+  $('#nConsigna').innerHTML = n.c;
+  $('#nServicios').innerHTML = n.serv.map(k => '<span class="servicio" style="--c:' + SERVICIOS[k].c + '">' + SERVICIOS[k].n + ' · ' + SERVICIOS[k].uri.replace('http://', '') + '</span>').join('');
+  $('#nPistas').innerHTML = n.pistas.map((_, i) => '<button class="btn sec chico" data-p="' + i + '" style="margin:4px 6px 0 0">Pista ' + (i + 1) + '</button>').join('') + n.pistas.map((p, i) => '<div class="pista" id="pi' + i + '">' + p + '</div>').join('');
+  $$('#nPistas [data-p]').forEach(b => b.onclick = () => { $('#pi' + b.dataset.p).classList.toggle('on'); pistasVistas = Math.max(pistasVistas, +b.dataset.p + 1); });
+  $('#nResultado').className = 'resultado';
+  ed = editor($('#nRutas'), rutasNivel, () => { estado.rutas[estado.nivel] = copia(rutasNivel); guardar(); $('#nCodigo').innerHTML = aJava(rutasNivel); });
+  $('#nCodigo').innerHTML = aJava(rutasNivel);
+  pintarPedidos(null);
+  pintarCamino();
+}
+function probar() {
+  const n = NIVELES[estado.nivel];
+  const res = n.pedidos.map(p => {
+    const r = rutear(rutasNivel, { m: p[0], p: p[1], h: p[2] || {} });
+    let ok = r.servicio === p[3] && (p[3] === null || r.path === p[4]);
+    if (ok && p[5]) ok = Object.keys(r.headers).some(h => h.toLowerCase() === p[5].toLowerCase());
+    return Object.assign(r, { ok });
+  });
+  pintarPedidos(res);
+  estado.intentos[estado.nivel] = (estado.intentos[estado.nivel] || 0) + 1;
+  const bien = res.filter(r => r.ok).length;
+  const el = $('#nResultado');
+  if (bien === res.length) {
+    const e = Math.max(1, 3 - pistasVistas - Math.min(1, estado.intentos[estado.nivel] - 1));
+    estado.estrellas[estado.nivel] = Math.max(estado.estrellas[estado.nivel] || 0, e);
+    el.className = 'resultado on bien';
+    el.innerHTML = '<span class="estrellas">' + '★'.repeat(e) + '☆'.repeat(3 - e) + '</span><br>¡Todos los pedidos llegan donde tienen que llegar!' +
+      (estado.nivel < NIVELES.length - 1 ? ' <button class="btn chico" id="nSig" style="margin-left:8px">Siguiente nivel</button>' : ' Terminaste los ocho niveles.');
+    if ($('#nSig')) $('#nSig').onclick = () => { estado.nivel++; guardar(); cargarNivel(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  } else {
+    el.className = 'resultado on mal';
+    el.textContent = bien + ' de ' + res.length + ' pedidos llegan bien. Mirá la columna "Llega a" y ajustá las rutas.';
+  }
+  guardar(); pintarCamino();
+}
+$('#nAgregar').onclick = () => ed.agregar();
+$('#nProbar').onclick = probar;
+$('#nReiniciar').onclick = () => { delete estado.rutas[estado.nivel]; estado.intentos[estado.nivel] = 0; guardar(); cargarNivel(); };
+
+// ------------------------------------------------------------------ laboratorio
+const rutasLab = estado.lab ? copia(estado.lab) : [R('maquinas', '/api/maquinas/**', 'maq', { rhn: 'X-Gateway', rhv: 'fuerzagym' }), R('planes', '/api/planes/**', 'pla')];
+const edLab = editor($('#lRutas'), rutasLab, () => { estado.lab = copia(rutasLab); guardar(); $('#lCodigo').innerHTML = aJava(rutasLab); });
+$('#lCodigo').innerHTML = aJava(rutasLab);
+$('#lAgregar').onclick = () => edLab.agregar();
+$('#lEnviar').onclick = () => {
+  const h = {}; if ($('#lHn').value.trim()) h[$('#lHn').value.trim().toLowerCase()] = $('#lHv').value.trim();
+  const p = $('#lPath').value.trim() || '/';
+  const r = rutear(rutasLab, { m: $('#lMetodo').value, p, h });
+  const paso = (c, t) => '<span class="paso" style="--c:' + c + '">' + t + '</span>';
+  if (r.servicio) {
+    const s = SERVICIOS[r.servicio];
+    $('#lViaje').innerHTML = paso('#334155', 'cliente · ' + esc($('#lMetodo').value + ' ' + p)) + '<span class="flecha">→</span>' + paso('var(--gw)', 'gateway · ruta ' + (r.ruta + 1) + ' (' + esc(r.id) + ')') + '<span class="flecha">→</span>' + paso(s.c, s.n + ' · ' + esc(r.path));
+    $('#lExplica').innerHTML = 'El gateway reenvía a <code>' + esc(s.uri + r.path) + '</code>' + (r.path !== p ? ' (el path se reescribió)' : '') + (Object.keys(r.headers).length ? '. La respuesta vuelve con el header <code>' + esc(Object.keys(r.headers)[0] + ': ' + Object.values(r.headers)[0]) + '</code>.' : '.');
+  } else {
+    $('#lViaje').innerHTML = paso('#334155', 'cliente · ' + esc($('#lMetodo').value + ' ' + p)) + '<span class="flecha">→</span>' + paso('var(--mal)', 'gateway · 404');
+    $('#lExplica').textContent = 'Ninguna ruta coincide: el gateway responde 404 sin llamar a ningún servicio.';
+  }
+};
+
+// ------------------------------------------------------------------ pestañas
+$$('nav button').forEach(b => b.onclick = () => {
+  $$('nav button').forEach(x => x.classList.toggle('on', x === b));
+  ['desafios', 'lab', 'guia'].forEach(s => $('#' + s).hidden = s !== b.dataset.s);
+});
+cargarNivel();
+</script>
+<script>
+// Boton "Borrar mis cambios": primer clic pide confirmacion, el segundo borra y recarga
+(function () {
+  var boton = document.getElementById('borrarTodo'), texto = boton.textContent, armado = false, espera;
+  boton.addEventListener('click', function (ev) {
+    ev.stopPropagation();
+    if (!armado) {
+      armado = true; boton.textContent = '¿Seguro? Tocá otra vez para borrar'; boton.classList.add('armado');
+      clearTimeout(espera);
+      espera = setTimeout(function () { armado = false; boton.textContent = texto; boton.classList.remove('armado'); }, 4000);
+      return;
+    }
+    try { localStorage.removeItem('simulador-api-gateway'); sessionStorage.clear(); } catch (e) {}
+    location.replace(location.href.split('#')[0].split('?')[0]);
+  });
+})();
+</script>
+</body>
+</html>
