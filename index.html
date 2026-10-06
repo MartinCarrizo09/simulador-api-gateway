@@ -6,153 +6,235 @@
 <title>Simulador de API Gateway</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --fondo:#f4f6fb; --tarjeta:#ffffff; --tarjeta2:#f1f4f9; --tinta:#111827; --gris:#5b6479; --borde:#dfe5ef;
-  --acento:#4338ca; --acento-suave:#eef0ff; --gw:#7c3aed; --pla:#0e7490; --maq:#c2410c; --soc:#be185d; --v2:#0f766e; --echo:#475569;
-  --ok:#059669; --ok-suave:#e6f6ef; --mal:#dc2626; --mal-suave:#fde8e8; --warn:#b45309; --warn-suave:#fff4e0;
+  --fondo:#f6f7fa; --tarjeta:#ffffff; --hueco:#f2f4f8; --tinta:#111827; --gris:#5f6878; --gris2:#8b94a5;
+  --borde:#e3e7ef; --borde2:#eef1f6;
+  --acento:#4338ca; --acento-suave:#eeefff;
+  --gw:#7c3aed; --pla:#0e7490; --maq:#c2410c; --soc:#be185d; --v2:#0f766e; --echo:#475569;
+  --ok:#047857; --ok-suave:#e8f6f0; --mal:#dc2626; --mal-suave:#fdeaea; --oro:#d97706;
   --f-tit:"Sora",system-ui,sans-serif; --f-txt:"IBM Plex Sans",system-ui,sans-serif; --f-cod:"IBM Plex Mono",ui-monospace,Consolas,monospace;
-  --sombra:0 8px 26px rgba(17,24,39,.07);
+  --elevada:0 10px 30px rgba(17,24,39,.08);
 }
 *{box-sizing:border-box}
-html,body{margin:0;background:var(--fondo);color:var(--tinta);font:16px/1.5 var(--f-txt)}
-.contenedor{max-width:1120px;margin:0 auto;padding:0 16px}
-header{padding:22px 0 10px}
-.cabecera{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px}
-.logo{font:600 15px var(--f-cod);background:#fff;border:1px solid var(--borde);border-radius:12px;padding:8px 12px;box-shadow:var(--sombra)}
-.logo b{color:var(--gw)}
-.cabecera h1{font:800 28px var(--f-tit);margin:0}
-.cabecera p{margin:2px 0 0;color:var(--gris)}
-nav{margin-left:auto;display:flex;gap:4px;background:#fff;border:1px solid var(--borde);border-radius:14px;padding:4px;box-shadow:var(--sombra)}
-nav button{border:0;background:transparent;font:600 15px var(--f-txt);color:var(--gris);padding:8px 16px;border-radius:10px;cursor:pointer}
-nav button.on{background:var(--tinta);color:#fff}
+html,body{margin:0;background:var(--fondo);color:var(--tinta);font:16px/1.55 var(--f-txt)}
+.contenedor{max-width:1060px;margin:0 auto;padding:0 18px}
+
+/* ---------- cabecera: titulo + pestanas, sin adornos ---------- */
+header{padding:26px 0 18px}
+.cabecera{display:flex;flex-wrap:wrap;align-items:flex-end;gap:12px 24px}
+.cabecera h1{font:800 27px/1.15 var(--f-tit);margin:0;letter-spacing:-.01em}
+.cabecera .sub{margin:5px 0 0;color:var(--gris);font-size:15px}
+.cabecera .sub b{font:500 14px var(--f-cod);color:var(--gw)}
+nav{margin-left:auto;display:flex;gap:2px;background:var(--hueco);border-radius:11px;padding:3px}
+nav button{border:0;background:transparent;font:600 14.5px var(--f-txt);color:var(--gris);padding:7px 15px;border-radius:9px;cursor:pointer;transition:color .15s}
+nav button:hover{color:var(--tinta)}
+nav button.on{background:var(--tarjeta);color:var(--tinta);box-shadow:0 1px 3px rgba(17,24,39,.09)}
 section[hidden]{display:none}
-.bloque{background:var(--tarjeta);border:1px solid var(--borde);border-radius:18px;box-shadow:var(--sombra);padding:18px 20px;margin-top:16px}
-h2{font:700 20px var(--f-tit);margin:0 0 10px}
-h3{font:700 16px var(--f-tit);margin:0 0 8px}
+
+/* ---------- tarjetas: solo la del trabajo tiene sombra ---------- */
+.bloque{background:var(--tarjeta);border:1px solid var(--borde);border-radius:16px;padding:20px 22px;margin-top:18px}
+.bloque.foco{box-shadow:var(--elevada);border-color:#dadfe9}
+h2{font:700 19px var(--f-tit);margin:0 0 12px;letter-spacing:-.01em}
+.h2-nota{font:400 14px var(--f-txt);color:var(--gris2);margin-left:2px}
 .muted{color:var(--gris)}
-code{font:14px var(--f-cod);background:var(--tarjeta2);border-radius:6px;padding:1px 6px;overflow-wrap:anywhere}
-.btn{border:0;background:var(--acento);color:#fff;font:600 15px var(--f-txt);border-radius:12px;padding:10px 18px;cursor:pointer}
-.btn.sec{background:#fff;color:var(--tinta);border:1px solid var(--borde)}
-.btn.chico{padding:6px 10px;font-size:14px}
-.btn:disabled{opacity:.4;cursor:default}
-/* camino de niveles */
-.camino{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
-.camino button{border:1px solid var(--borde);background:#fff;border-radius:12px;padding:8px 12px;font:600 14px var(--f-txt);cursor:pointer;color:var(--tinta);min-width:58px}
-.camino button.actual{border-color:var(--acento);background:var(--acento-suave);color:var(--acento)}
-.camino button.hecho{border-color:var(--ok);color:var(--ok)}
-.camino button small{display:block;font-size:12px;letter-spacing:1px}
-/* consigna */
-.consigna{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:16px}
-@media (max-width:860px){.consigna{grid-template-columns:minmax(0,1fr)}}
-.consigna .nivel-tit{font:800 22px var(--f-tit);margin:0}
-.consigna p{margin:8px 0}
-.servicios{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
-.servicio{font:600 14px var(--f-cod);border:2px solid var(--c);color:var(--c);border-radius:10px;padding:4px 10px;background:#fff}
-table.pedidos{width:100%;border-collapse:collapse;font-size:15px}
-table.pedidos th{text-align:left;font:600 12px var(--f-tit);text-transform:uppercase;letter-spacing:.06em;color:var(--gris);padding:6px 6px;border-bottom:1px solid var(--borde)}
-table.pedidos td{padding:7px 6px;border-bottom:1px solid var(--borde);vertical-align:top}
-table.pedidos td code{font-size:13.5px}
+code{font:13.5px var(--f-cod);background:var(--hueco);border-radius:5px;padding:1px 5px;overflow-wrap:anywhere}
+.btn{border:0;background:var(--acento);color:#fff;font:600 15px var(--f-txt);border-radius:11px;padding:11px 20px;cursor:pointer;transition:filter .15s}
+.btn:hover{filter:brightness(1.1)}
+.btn.sec{background:var(--tarjeta);color:var(--tinta);border:1px solid var(--borde)}
+.btn.sec:hover{background:var(--hueco);filter:none}
+.btn.chico{padding:6px 11px;font-size:13.5px;border-radius:9px}
+.btn:disabled{opacity:.35;cursor:default;filter:none}
+.btn.plano{background:none;border:0;color:var(--gris);font:600 14px var(--f-txt);padding:8px 4px;cursor:pointer;text-decoration:underline;text-decoration-color:var(--borde);text-underline-offset:3px}
+.btn.plano:hover{color:var(--tinta);filter:none}
+
+/* ---------- riel de niveles: fino, un punto por estrella ---------- */
+.riel{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.riel button{border:1px solid var(--borde);background:var(--tarjeta);border-radius:11px;padding:6px 0 5px;width:46px;
+             font:700 15px var(--f-tit);color:var(--gris);cursor:pointer;line-height:1.1;transition:border-color .15s,color .15s}
+.riel button:hover{border-color:var(--gris2);color:var(--tinta)}
+.riel button .puntos{display:flex;gap:3px;justify-content:center;margin-top:4px}
+.riel button .puntos i{width:4px;height:4px;border-radius:50%;background:var(--borde)}
+.riel button .puntos i.on{background:var(--oro)}
+.riel button.hecho{color:var(--ok);border-color:#c9e6da}
+.riel button.actual{background:var(--tinta);border-color:var(--tinta);color:#fff}
+.riel button.actual .puntos i{background:#4b5563}
+.riel button.actual .puntos i.on{background:#fbbf24}
+
+/* ---------- consigna ---------- */
+.consigna{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:26px}
+@media (max-width:880px){.consigna{grid-template-columns:minmax(0,1fr);gap:22px}}
+.nivel-num{font:600 12.5px var(--f-txt);color:var(--gris2);letter-spacing:.04em}
+.nivel-tit{font:800 23px/1.2 var(--f-tit);margin:3px 0 8px;letter-spacing:-.015em}
+.consigna p{margin:0 0 14px}
+.servicios{display:flex;flex-wrap:wrap;gap:6px}
+.servicio{font:500 13px var(--f-cod);border:1px solid var(--c);color:var(--c);border-radius:999px;padding:3px 11px;background:#fff}
+.col-der h3{font:600 12.5px var(--f-txt);color:var(--gris2);letter-spacing:.04em;margin:0 0 8px}
+
+table.pedidos{width:100%;border-collapse:collapse;font-size:14.5px}
+table.pedidos th{text-align:left;font:600 11.5px var(--f-txt);letter-spacing:.04em;color:var(--gris2);padding:0 8px 6px 0;border-bottom:1px solid var(--borde2)}
+table.pedidos td{padding:9px 8px 9px 0;border-bottom:1px solid var(--borde2);vertical-align:top}
+table.pedidos tr:last-child td{border-bottom:0}
+table.pedidos td code{font-size:13px}
 .res-ok{color:var(--ok);font-weight:700}
 .res-mal{color:var(--mal);font-weight:700}
-/* editor de rutas */
-.rutas{display:flex;flex-direction:column;gap:12px}
-.ruta{border:1px solid var(--borde);border-left:6px solid var(--gw);border-radius:14px;padding:12px 14px;background:#fff}
-.ruta .fila-top{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
-.ruta .orden{font:800 18px var(--f-tit);color:var(--gw);width:26px}
-.campos{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-@media (max-width:860px){.campos{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media (max-width:520px){.campos{grid-template-columns:minmax(0,1fr)}}
-.campo label{display:block;font:600 12.5px var(--f-tit);text-transform:uppercase;letter-spacing:.05em;color:var(--gris);margin-bottom:4px}
-.campo .tipo{font:600 11px var(--f-txt);border-radius:99px;padding:1px 7px;margin-left:4px;text-transform:none;letter-spacing:0}
-.campo .tipo.pred{background:#ede9fe;color:var(--gw)}
-.campo .tipo.filt{background:var(--warn-suave);color:var(--warn)}
-input[type=text],select{width:100%;font:14px var(--f-cod);padding:8px 10px;border:1px solid var(--borde);border-radius:10px;background:var(--tarjeta2);color:var(--tinta)}
-select{font-family:var(--f-txt)}
+
+/* ---------- pista progresiva: un solo boton ---------- */
+.pistas{margin-top:16px}
+.pista{background:var(--hueco);border-radius:10px;padding:9px 13px;margin-bottom:7px;font-size:14.5px}
+.pista b{font:600 12px var(--f-txt);color:var(--gris2);display:block;letter-spacing:.04em}
+
+/* ---------- tarjeta de ruta: solo lo esencial a la vista ---------- */
+.rutas{display:flex;flex-direction:column;gap:10px}
+.ruta{border:1px solid var(--borde);border-radius:13px;padding:13px 15px 14px;background:var(--tarjeta)}
+.ruta:hover{border-color:#d7dce6}
+.ruta .fila-top{display:flex;gap:9px;align-items:center;margin-bottom:12px}
+.ruta .orden{flex:none;width:24px;height:24px;border-radius:7px;background:var(--acento-suave);color:var(--acento);
+             font:700 13px var(--f-tit);display:grid;place-items:center}
+.ruta .id{flex:1;min-width:0;max-width:190px;border:0;background:none;padding:2px 0;font:600 15px var(--f-txt);color:var(--tinta)}
+.ruta .id:focus{outline:0;border-bottom:1px solid var(--acento)}
+.ruta .mover{display:flex;gap:3px;margin-left:auto}
+.ruta .mover button{border:1px solid var(--borde);background:#fff;color:var(--gris);border-radius:8px;width:28px;height:28px;
+                    font-size:13px;cursor:pointer;display:grid;place-items:center}
+.ruta .mover button:hover:not(:disabled){border-color:var(--gris2);color:var(--tinta)}
+.ruta .mover button:disabled{opacity:.3;cursor:default}
+.ruta .mover button.quitar:hover{border-color:var(--mal);color:var(--mal)}
+
+.campos{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:12px}
+@media (max-width:620px){.campos{grid-template-columns:minmax(0,1fr)}}
+.campo label{display:block;font:600 12.5px var(--f-txt);color:var(--gris);margin-bottom:5px}
+input[type=text],select{width:100%;font:14px var(--f-cod);padding:9px 11px;border:1px solid var(--borde);
+                        border-radius:9px;background:var(--hueco);color:var(--tinta)}
+input[type=text]:focus,select:focus{outline:0;border-color:var(--acento);background:#fff}
+input[type=text]::placeholder{color:var(--gris2)}
+select{font-family:var(--f-txt);font-size:14.5px}
 .par{display:flex;gap:6px}
 .par input{min-width:0}
-.ruta .id{max-width:180px}
-.codigo{background:#0f172a;color:#e2e8f0;border-radius:14px;padding:14px 16px;font:13.5px/1.55 var(--f-cod);white-space:pre;overflow:auto;margin:0}
-.codigo .k{color:#c4b5fd} .codigo .s{color:#86efac} .codigo .c{color:#94a3b8}
-.acciones{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px}
-.resultado{margin-top:14px;padding:12px 14px;border-radius:12px;font-weight:600;display:none}
+
+/* el desplegable de cada ruta */
+.mas{margin-top:12px}
+.mas>button{border:0;background:none;color:var(--gris);font:600 13.5px var(--f-txt);padding:4px 0;cursor:pointer;display:flex;align-items:center;gap:7px}
+.mas>button:hover{color:var(--tinta)}
+.mas>button .ch{font-size:10px;color:var(--gris2);transition:transform .18s}
+.mas>button[aria-expanded=true] .ch{transform:rotate(90deg)}
+.mas>button .cuenta{font:600 11px var(--f-txt);background:var(--acento-suave);color:var(--acento);border-radius:999px;padding:1px 7px}
+.avanzado{margin-top:12px;padding-top:14px;border-top:1px dashed var(--borde);display:flex;flex-direction:column;gap:14px}
+.grupo>.rotulo{font:600 11.5px var(--f-txt);letter-spacing:.05em;margin-bottom:9px;display:flex;align-items:center;gap:8px}
+.grupo>.rotulo::after{content:"";flex:1;height:1px;background:var(--borde2)}
+.grupo.pred>.rotulo{color:var(--gw)}
+.grupo.filt>.rotulo{color:var(--oro)}
+.grupo .campos{grid-template-columns:repeat(2,minmax(0,1fr))}
+@media (max-width:620px){.grupo .campos{grid-template-columns:minmax(0,1fr)}}
+
+.acciones{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:18px}
+.acciones .separa{flex:1}
+.resultado{margin-top:16px;padding:14px 16px;border-radius:12px;display:none}
 .resultado.on{display:block}
 .resultado.bien{background:var(--ok-suave);color:var(--ok)}
-.resultado.mal{background:var(--mal-suave);color:var(--mal)}
-.estrellas{font-size:24px;letter-spacing:4px;color:#f59e0b}
-.pistas{margin-top:10px}
-.pista{display:none;background:var(--tarjeta2);border-radius:10px;padding:8px 12px;margin-top:8px}
-.pista.on{display:block}
-/* laboratorio */
-.lab{display:grid;grid-template-columns:110px minmax(0,1fr) minmax(0,1fr) auto;gap:8px;align-items:end}
-@media (max-width:760px){.lab{grid-template-columns:minmax(0,1fr)}}
-.viaje{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;font:600 15px var(--f-cod)}
-.viaje .paso{border:2px solid var(--c);color:var(--c);border-radius:12px;padding:8px 12px;background:#fff}
-.viaje .flecha{color:var(--gris)}
-/* guía */
-.guia{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-@media (max-width:760px){.guia{grid-template-columns:minmax(0,1fr)}}
-dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:8px 14px}
-dt{font:600 14px var(--f-cod);color:var(--c)}
+.resultado.mal{background:var(--mal-suave);color:var(--mal);font-weight:600}
+.resultado .estrellas{font-size:22px;letter-spacing:5px;color:var(--oro);display:block;margin-bottom:4px}
+.resultado .festejo{font-weight:700}
+
+/* ---------- el Java, plegado ---------- */
+details.java{margin-top:18px;background:var(--tarjeta);border:1px solid var(--borde);border-radius:16px;padding:0 22px}
+details.java>summary{font:600 15px var(--f-txt);color:var(--gris);padding:15px 0;cursor:pointer;list-style:none;display:flex;align-items:center;gap:9px}
+details.java>summary::-webkit-details-marker{display:none}
+details.java>summary::before{content:"▸";font-size:11px;color:var(--gris2);transition:transform .18s}
+details.java[open]>summary{color:var(--tinta)}
+details.java[open]>summary::before{transform:rotate(90deg)}
+details.java>.cuerpo{padding-bottom:20px}
+.codigo{background:#0f172a;color:#e2e8f0;border-radius:12px;padding:15px 17px;font:13.5px/1.6 var(--f-cod);
+        white-space:pre;overflow:auto;margin:0}
+.codigo .k{color:#c4b5fd} .codigo .s{color:#86efac} .codigo .c{color:#94a3b8}
+
+/* ---------- laboratorio ---------- */
+.lab{display:grid;grid-template-columns:108px minmax(0,1.3fr) minmax(0,1.2fr) auto;gap:10px;align-items:end}
+@media (max-width:780px){.lab{grid-template-columns:minmax(0,1fr)}}
+.viaje{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-top:18px;font:500 14px var(--f-cod)}
+.viaje .paso{border:1px solid var(--c);color:var(--c);border-radius:10px;padding:8px 12px;background:#fff}
+.viaje .flecha{color:var(--gris2)}
+#lExplica{margin:12px 0 0}
+
+/* ---------- guia ---------- */
+.guia{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px;align-items:start}
+@media (max-width:780px){.guia{grid-template-columns:minmax(0,1fr)}}
+.guia .bloque{margin-top:0}
+.guia h2{font-size:17px;display:flex;align-items:center;gap:9px}
+.guia h2::before{content:"";width:9px;height:9px;border-radius:3px;background:var(--c);flex:none}
+dl{margin:0;display:grid;grid-template-columns:auto minmax(0,1fr);gap:9px 16px;font-size:14.5px}
+dt{font:500 13.5px var(--f-cod);color:var(--c);overflow-wrap:anywhere}
 dd{margin:0;color:var(--gris)}
-.pie-borrar{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 16px;margin:40px auto 24px;max-width:1080px;padding:18px 16px;border-top:1px dashed var(--borde);color:var(--gris);font-size:14px;text-align:center}
-.pie-borrar button{font:600 14.5px var(--f-txt);border:1.5px solid var(--borde);background:#fff;color:var(--tinta);border-radius:12px;padding:9px 16px;cursor:pointer}
-.pie-borrar button:hover,.pie-borrar button.armado{border-color:var(--mal);color:var(--mal)}
+
+footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:9px 14px;
+       margin:44px auto 28px;padding-top:20px;border-top:1px solid var(--borde);color:var(--gris2);font-size:13.5px}
+footer button{font:600 14px var(--f-txt);border:1px solid var(--borde);background:#fff;color:var(--gris);
+              border-radius:10px;padding:8px 15px;cursor:pointer}
+footer button:hover,footer button.armado{border-color:var(--mal);color:var(--mal)}
 </style>
 </head>
 <body>
 <div class="contenedor">
 <header>
   <div class="cabecera">
-    <span class="logo">cliente → <b>gateway</b> → servicio</span>
-    <div><h1>Simulador de API Gateway</h1><p>Armá las rutas y mirá a dónde va cada pedido.</p></div>
-    <nav><button data-s="desafios" class="on">Desafíos</button><button data-s="lab">Laboratorio</button><button data-s="guia">Guía rápida</button></nav>
+    <div>
+      <h1>Simulador de API Gateway</h1>
+      <p class="sub">Armá las rutas y mirá a dónde va cada pedido. <b>cliente → gateway → servicio</b></p>
+    </div>
+    <nav>
+      <button data-s="desafios" class="on">Desafíos</button>
+      <button data-s="lab">Laboratorio</button>
+      <button data-s="guia">Guía rápida</button>
+    </nav>
   </div>
 </header>
 
 <!-- ================= DESAFÍOS ================= -->
 <section id="desafios">
-  <div class="camino" id="camino"></div>
+  <div class="riel" id="riel" aria-label="Niveles"></div>
+
   <div class="bloque consigna">
     <div>
-      <div class="muted" id="nNum"></div>
+      <div class="nivel-num" id="nNum"></div>
       <h2 class="nivel-tit" id="nTitulo"></h2>
       <p id="nConsigna"></p>
       <div class="servicios" id="nServicios"></div>
       <div class="pistas" id="nPistas"></div>
     </div>
-    <div>
-      <h3>Los pedidos que tienen que andar</h3>
+    <div class="col-der">
+      <h3>LOS PEDIDOS QUE TIENEN QUE ANDAR</h3>
       <table class="pedidos" id="nPedidos"></table>
     </div>
   </div>
-  <div class="bloque">
-    <h2>Tus rutas <span class="muted" style="font:500 15px var(--f-txt)">· se prueban en orden: gana la primera que coincide</span></h2>
+
+  <div class="bloque foco">
+    <h2>Tus rutas <span class="h2-nota">se prueban en orden: gana la primera que coincide</span></h2>
     <div class="rutas" id="nRutas"></div>
     <div class="acciones">
       <button class="btn sec" id="nAgregar">+ Agregar ruta</button>
       <button class="btn" id="nProbar">Probar los pedidos</button>
-      <button class="btn sec" id="nReiniciar">Empezar el nivel de nuevo</button>
+      <span class="separa"></span>
+      <button class="btn plano" id="nReiniciar">Empezar el nivel de nuevo</button>
     </div>
     <div class="resultado" id="nResultado"></div>
   </div>
-  <div class="bloque">
-    <h2>El mismo gateway, en Java</h2>
-    <pre class="codigo" id="nCodigo"></pre>
-  </div>
+
+  <details class="java">
+    <summary>Ver el mismo gateway escrito en Java</summary>
+    <div class="cuerpo"><pre class="codigo" id="nCodigo"></pre></div>
+  </details>
 </section>
 
 <!-- ================= LABORATORIO ================= -->
 <section id="lab" hidden>
   <div class="bloque">
     <h2>Laboratorio libre</h2>
-    <p class="muted">Armá cualquier configuración y mandá el pedido que quieras. Nada se corrige: es para experimentar.</p>
+    <p class="muted" style="margin:0 0 16px">Armá cualquier configuración y mandá el pedido que quieras. Nada se corrige: es para experimentar.</p>
     <div class="rutas" id="lRutas"></div>
     <div class="acciones"><button class="btn sec" id="lAgregar">+ Agregar ruta</button></div>
   </div>
-  <div class="bloque">
-    <h2>Mandar un pedido al gateway (puerto 8080)</h2>
+  <div class="bloque foco">
+    <h2>Mandar un pedido <span class="h2-nota">al gateway, puerto 8080</span></h2>
     <div class="lab">
       <div class="campo"><label>Verbo</label><select id="lMetodo"><option>GET</option><option>POST</option><option>PUT</option><option>DELETE</option></select></div>
       <div class="campo"><label>Path</label><input type="text" id="lPath" value="/api/maquinas/3" spellcheck="false"></div>
@@ -162,10 +244,10 @@ dd{margin:0;color:var(--gris)}
     <div class="viaje" id="lViaje"></div>
     <p class="muted" id="lExplica"></p>
   </div>
-  <div class="bloque">
-    <h2>En Java</h2>
-    <pre class="codigo" id="lCodigo"></pre>
-  </div>
+  <details class="java">
+    <summary>Ver el mismo gateway escrito en Java</summary>
+    <div class="cuerpo"><pre class="codigo" id="lCodigo"></pre></div>
+  </details>
 </section>
 
 <!-- ================= GUÍA RÁPIDA ================= -->
@@ -180,25 +262,28 @@ dd{margin:0;color:var(--gris)}
       <dt>query("debug")</dt><dd>la URL trae ese parámetro</dd>
       <dt>before(…) / after(…)</dt><dd>antes o después de una fecha</dd>
       <dt>.and() / .or()</dt><dd>combinar predicados</dd></dl></div>
-    <div class="bloque" style="--c:var(--warn)"><h2>Filtros: ¿qué le cambio?</h2><dl>
+
+    <div class="bloque" style="--c:var(--oro)"><h2>Filtros: ¿qué le cambio?</h2><dl>
       <dt>rewritePath(a, b)</dt><dd>cambia el path antes de reenviarlo (pre-filtro)</dd>
       <dt>addRequestHeader(n, v)</dt><dd>agrega un header al pedido que llega al servicio (pre-filtro)</dd>
       <dt>addResponseHeader(n, v)</dt><dd>agrega un header a la respuesta que vuelve al cliente (post-filtro)</dd>
       <dt>setStatus(…)</dt><dd>cambia el código de respuesta</dd>
       <dt>stripPrefix(1)</dt><dd>saca el primer tramo del path</dd>
       <dt>requestRateLimiter(…)</dt><dd>limita cuántos pedidos por segundo</dd></dl>
-      <p class="muted" style="margin-top:12px">Si ninguna ruta coincide, el gateway responde <b>404</b> sin llamar a nadie. Si el servicio está caído, responde con un error (500 en el práctico).</p></div>
+      <p class="muted" style="margin:14px 0 0">Si ninguna ruta coincide, el gateway responde <b>404</b> sin llamar a nadie. Si el servicio está caído, responde con un error (500 en el práctico).</p></div>
+
     <div class="bloque" style="--c:var(--acento)"><h2>Una ruta completa</h2>
 <pre class="codigo">.route(<span class="s">"maquinas"</span>, r -> r.path(<span class="s">"/api/maquinas/**"</span>)
         .and().method(<span class="s">"GET"</span>)
         .filters(f -> f.addResponseHeader(<span class="s">"X-Gateway"</span>, <span class="s">"fuerzagym"</span>))
         .uri(<span class="s">"http://localhost:8081"</span>))</pre>
-      <p class="muted">id · predicados · filtros · destino. Va dentro de <code>builder.routes() … .build()</code>, en un <code>@Bean RouteLocator</code>.</p></div>
+      <p class="muted" style="margin:14px 0 0">id · predicados · filtros · destino. Va dentro de <code>builder.routes() … .build()</code>, en un <code>@Bean RouteLocator</code>.</p></div>
+
     <div class="bloque" style="--c:var(--pla)"><h2>Los servicios de este simulador</h2><dl id="gServicios"></dl></div>
   </div>
 </section>
 
-<footer class="pie-borrar"><button id="borrarTodo" type="button">Borrar mis cambios</button><span>Borra las estrellas y las rutas guardadas en este navegador.</span></footer>
+<footer><button id="borrarTodo" type="button">Borrar mis cambios</button><span>Borra las estrellas y las rutas guardadas en este navegador.</span></footer>
 </div>
 
 <script>
@@ -218,13 +303,19 @@ const SERVICIOS = {
 $('#gServicios').innerHTML = Object.values(SERVICIOS).map(s => '<dt style="--c:' + s.c + '">' + s.n + '</dt><dd>' + s.uri + '</dd>').join('');
 
 // ------------------------------------------------------------------ motor: ¿a dónde va el pedido?
-// Como PathPattern de Spring: "/**" al final = nada o cualquier cosa; "*" = un solo tramo
+// Traduce el path de una ruta (con los comodines de Spring) a una expresion regular.
+//   "/**" al final -> nada o cualquier cosa      "**" -> cualquier cosa      "*" -> un solo tramo
 function coincidePath(pathRuta, path) {
   if (!pathRuta || !pathRuta.trim()) return false;
-  let r = pathRuta.trim().replace(/[.+?^${}()|[\]\\]/g, '\\$&');
-  r = r.replace(/\/\*\*$/, '\u0001').replace(/\*\*/g, '\u0002').replace(/\*/g, '[^/]*')
-       .replace('\u0001', '(?:/.*)?').replace(/\u0002/g, '.*');
-  return new RegExp('^' + r + '$').test(path);
+  // 1) escapamos los caracteres que en una expresion regular significan otra cosa (el * no)
+  const escapado = pathRuta.trim().replace(/[.+?^${}()|[\]\\]/g, '\\$&');
+  // 2) cambiamos los comodines, todos en una sola pasada
+  const expresion = escapado.replace(/\/\*\*$|\*\*|\*/g, comodin => {
+    if (comodin === '/**') return '(?:/.*)?';
+    if (comodin === '**') return '.*';
+    return '[^/]*';
+  });
+  return new RegExp('^' + expresion + '$').test(path);
 }
 function reescribir(path, desde, hacia) {
   if (!desde) return path;
@@ -270,30 +361,98 @@ function aJava(rutas) {
 
 // ------------------------------------------------------------------ editor de rutas
 const rutaVacia = n => ({ id: 'ruta' + n, path: '', metodo: '', hn: '', hv: '', rwDesde: '', rwHacia: '', rhn: '', rhv: '', destino: 'maq' });
+
+// Cuantas cosas "avanzadas" tiene cargadas una ruta (verbo, header, reescritura, header de respuesta)
+function cuantasAvanzadas(r) {
+  let n = 0;
+  if (r.metodo) n++;
+  if ((r.hn || '').trim()) n++;
+  if ((r.rwDesde || '').trim()) n++;
+  if ((r.rhn || '').trim()) n++;
+  return n;
+}
+
 function editor(cont, rutas, alCambiar) {
   function pintar() {
     cont.innerHTML = rutas.length ? '' : '<p class="muted">Todavía no hay rutas: el gateway respondería 404 a todo. Tocá "Agregar ruta".</p>';
     rutas.forEach((r, i) => {
+      const extras = cuantasAvanzadas(r);
+      // La primera vez se abre solo si la ruta ya trae algo avanzado cargado
+      if (r.abierta === undefined) r.abierta = extras > 0;
+
       const d = document.createElement('div');
       d.className = 'ruta';
       d.innerHTML =
-        '<div class="fila-top"><span class="orden">' + (i + 1) + '</span><input type="text" class="id" data-k="id" value="' + esc(r.id) + '" spellcheck="false" aria-label="Nombre de la ruta">' +
-        '<span style="flex:1"></span><button class="btn sec chico" data-a="sube" ' + (i === 0 ? 'disabled' : '') + ' title="Subir">↑</button><button class="btn sec chico" data-a="baja" ' + (i === rutas.length - 1 ? 'disabled' : '') + ' title="Bajar">↓</button><button class="btn sec chico" data-a="borra" title="Borrar">✕</button></div>' +
+        '<div class="fila-top">' +
+          '<span class="orden">' + (i + 1) + '</span>' +
+          '<input type="text" class="id" data-k="id" value="' + esc(r.id) + '" spellcheck="false" aria-label="Nombre de la ruta">' +
+          '<span class="mover">' +
+            '<button data-a="sube" ' + (i === 0 ? 'disabled' : '') + ' title="Subir" aria-label="Subir">↑</button>' +
+            '<button data-a="baja" ' + (i === rutas.length - 1 ? 'disabled' : '') + ' title="Bajar" aria-label="Bajar">↓</button>' +
+            '<button data-a="borra" class="quitar" title="Borrar" aria-label="Borrar">✕</button>' +
+          '</span>' +
+        '</div>' +
+
+        // lo esencial: path y destino
         '<div class="campos">' +
-        '<div class="campo"><label>Path <span class="tipo pred">predicado</span></label><input type="text" data-k="path" value="' + esc(r.path) + '" placeholder="/api/algo/**" spellcheck="false"></div>' +
-        '<div class="campo"><label>Verbo <span class="tipo pred">predicado</span></label><select data-k="metodo"><option value="">cualquiera</option>' + ['GET', 'POST', 'PUT', 'DELETE'].map(m => '<option' + (r.metodo === m ? ' selected' : '') + '>' + m + '</option>').join('') + '</select></div>' +
-        '<div class="campo"><label>Header <span class="tipo pred">predicado</span></label><div class="par"><input type="text" data-k="hn" value="' + esc(r.hn) + '" placeholder="nombre" spellcheck="false"><input type="text" data-k="hv" value="' + esc(r.hv) + '" placeholder="valor" spellcheck="false"></div></div>' +
-        '<div class="campo"><label>Se reenvía a</label><select data-k="destino">' + Object.keys(SERVICIOS).map(k => '<option value="' + k + '"' + (r.destino === k ? ' selected' : '') + '>' + SERVICIOS[k].n + '</option>').join('') + '</select></div>' +
-        '<div class="campo" style="grid-column:span 2"><label>Reescribir el path <span class="tipo filt">filtro</span></label><div class="par"><input type="text" data-k="rwDesde" value="' + esc(r.rwDesde) + '" placeholder="si empieza con /gym" spellcheck="false"><input type="text" data-k="rwHacia" value="' + esc(r.rwHacia) + '" placeholder="cambialo por /api" spellcheck="false"></div></div>' +
-        '<div class="campo" style="grid-column:span 2"><label>Header en la respuesta <span class="tipo filt">filtro</span></label><div class="par"><input type="text" data-k="rhn" value="' + esc(r.rhn) + '" placeholder="nombre" spellcheck="false"><input type="text" data-k="rhv" value="' + esc(r.rhv) + '" placeholder="valor" spellcheck="false"></div></div>' +
+          '<div class="campo"><label>Path</label><input type="text" data-k="path" value="' + esc(r.path) + '" placeholder="/api/algo/**" spellcheck="false"></div>' +
+          '<div class="campo"><label>Se reenvía a</label><select data-k="destino">' +
+            Object.keys(SERVICIOS).map(k => '<option value="' + k + '"' + (r.destino === k ? ' selected' : '') + '>' + SERVICIOS[k].n + '</option>').join('') +
+          '</select></div>' +
+        '</div>' +
+
+        // el resto, plegado
+        '<div class="mas">' +
+          '<button type="button" data-a="mas" aria-expanded="' + (r.abierta ? 'true' : 'false') + '">' +
+            '<span class="ch">▸</span> Más condiciones y filtros' +
+            (extras ? ' <span class="cuenta">' + extras + '</span>' : '') +
+          '</button>' +
+          '<div class="avanzado"' + (r.abierta ? '' : ' hidden') + '>' +
+            '<div class="grupo pred"><div class="rotulo">CONDICIONES · predicados</div><div class="campos">' +
+              '<div class="campo"><label>Verbo</label><select data-k="metodo"><option value="">cualquiera</option>' +
+                ['GET', 'POST', 'PUT', 'DELETE'].map(m => '<option' + (r.metodo === m ? ' selected' : '') + '>' + m + '</option>').join('') +
+              '</select></div>' +
+              '<div class="campo"><label>Header que tiene que traer</label><div class="par">' +
+                '<input type="text" data-k="hn" value="' + esc(r.hn) + '" placeholder="nombre" spellcheck="false">' +
+                '<input type="text" data-k="hv" value="' + esc(r.hv) + '" placeholder="valor" spellcheck="false">' +
+              '</div></div>' +
+            '</div></div>' +
+            '<div class="grupo filt"><div class="rotulo">TRANSFORMACIONES · filtros</div><div class="campos">' +
+              '<div class="campo"><label>Reescribir el path</label><div class="par">' +
+                '<input type="text" data-k="rwDesde" value="' + esc(r.rwDesde) + '" placeholder="si empieza con /gym" spellcheck="false">' +
+                '<input type="text" data-k="rwHacia" value="' + esc(r.rwHacia) + '" placeholder="cambialo por /api" spellcheck="false">' +
+              '</div></div>' +
+              '<div class="campo"><label>Header en la respuesta</label><div class="par">' +
+                '<input type="text" data-k="rhn" value="' + esc(r.rhn) + '" placeholder="nombre" spellcheck="false">' +
+                '<input type="text" data-k="rhv" value="' + esc(r.rhv) + '" placeholder="valor" spellcheck="false">' +
+              '</div></div>' +
+            '</div></div>' +
+          '</div>' +
         '</div>';
-      d.querySelectorAll('[data-k]').forEach(el => el.oninput = el.onchange = () => { r[el.dataset.k] = el.value; alCambiar(false); });
-      d.querySelectorAll('[data-a]').forEach(b => b.onclick = () => {
+
+      // escribir en un campo no repinta la tarjeta (asi no se pierde el foco)
+      d.querySelectorAll('[data-k]').forEach(el => el.oninput = el.onchange = () => {
+        r[el.dataset.k] = el.value;
+        const c = d.querySelector('.cuenta'), n = cuantasAvanzadas(r);
+        if (c) { c.textContent = n; c.hidden = n === 0; }
+        alCambiar(false);
+      });
+
+      // abrir / cerrar la parte avanzada
+      const botonMas = d.querySelector('[data-a=mas]');
+      botonMas.onclick = () => {
+        r.abierta = !r.abierta;
+        botonMas.setAttribute('aria-expanded', r.abierta ? 'true' : 'false');
+        d.querySelector('.avanzado').hidden = !r.abierta;
+      };
+
+      d.querySelectorAll('[data-a=sube],[data-a=baja],[data-a=borra]').forEach(b => b.onclick = () => {
         if (b.dataset.a === 'borra') rutas.splice(i, 1);
         if (b.dataset.a === 'sube' && i > 0) [rutas[i - 1], rutas[i]] = [rutas[i], rutas[i - 1]];
         if (b.dataset.a === 'baja' && i < rutas.length - 1) [rutas[i + 1], rutas[i]] = [rutas[i], rutas[i + 1]];
         pintar(); alCambiar(true);
       });
+
       cont.appendChild(d);
     });
   }
@@ -319,19 +478,19 @@ const NIVELES = [
   { t: 'Solo lectura', c: 'Por el gateway, las máquinas solo se pueden <b>leer</b>. Un DELETE o un POST a máquinas no tiene que llegar a ms-maquinas: 404 del gateway.',
     serv: ['maq'], ini: [R('maquinas', '/api/maquinas/**', 'maq')],
     pedidos: [['GET', '/api/maquinas/1', null, 'maq', '/api/maquinas/1'], ['DELETE', '/api/maquinas/1', null, null, null], ['POST', '/api/maquinas', null, null, null]],
-    pistas: ['Además del path, un predicado puede mirar el verbo.', 'En la ruta de máquinas elegí Verbo: GET.'] },
+    pistas: ['Además del path, un predicado puede mirar el verbo.', 'Abrí "Más condiciones y filtros" en la ruta de máquinas y elegí Verbo: GET.'] },
   { t: 'El orden importa', c: 'Hay una versión nueva de planes (<b>ms-planes-v2</b>) solo para quien manda el header <code>X-Version: 2</code>. Las rutas ya están, pero algo falla.',
     serv: ['pla', 'v2'], ini: [R('planes', '/api/planes/**', 'pla'), R('planes-v2', '/api/planes/**', 'v2', { hn: 'X-Version', hv: '2' })],
     pedidos: [['GET', '/api/planes/1', null, 'pla', '/api/planes/1'], ['GET', '/api/planes/1', { 'x-version': '2' }, 'v2', '/api/planes/1']],
-    pistas: ['Las rutas se prueban de arriba hacia abajo y gana la primera que coincide.', 'La ruta "planes" coincide también con los pedidos que traen el header. Subí "planes-v2" para que se pruebe primero.'] },
+    pistas: ['Las rutas se prueban de arriba hacia abajo y gana la primera que coincide.', 'La ruta "planes" coincide también con los pedidos que traen el header. Subí "planes-v2" con la flecha ↑ para que se pruebe primero.'] },
   { t: 'Caminos cortos', c: 'La app del gimnasio pide <code>/gym/maquinas/…</code> y <code>/gym/planes/…</code>, pero los servicios esperan <code>/api/…</code>. El gateway tiene que reescribir el path.',
     serv: ['maq', 'pla'], ini: [],
     pedidos: [['GET', '/gym/maquinas/3', null, 'maq', '/api/maquinas/3'], ['GET', '/gym/planes/1', null, 'pla', '/api/planes/1']],
-    pistas: ['Necesitás dos rutas, una por servicio: path <code>/gym/maquinas/**</code> y <code>/gym/planes/**</code>.', 'En cada una usá el filtro "Reescribir el path": si empieza con <code>/gym</code>, cambialo por <code>/api</code>.'] },
+    pistas: ['Necesitás dos rutas, una por servicio: path <code>/gym/maquinas/**</code> y <code>/gym/planes/**</code>.', 'En cada una abrí "Más condiciones y filtros" y usá "Reescribir el path": si empieza con <code>/gym</code>, cambialo por <code>/api</code>.'] },
   { t: 'La firma del gateway', c: 'Todo lo que vuelve por el gateway tiene que traer el header <code>X-Gateway: fuerzagym</code> (como la misión 5 del práctico).',
     serv: ['maq', 'pla'], ini: [R('maquinas', '/api/maquinas/**', 'maq'), R('planes', '/api/planes/**', 'pla')],
     pedidos: [['GET', '/api/maquinas/1', null, 'maq', '/api/maquinas/1', 'X-Gateway'], ['GET', '/api/planes/1', null, 'pla', '/api/planes/1', 'X-Gateway']],
-    pistas: ['Es un filtro que actúa sobre la respuesta.', 'En las dos rutas completá "Header en la respuesta": <code>X-Gateway</code> = <code>fuerzagym</code>.'] },
+    pistas: ['Es un filtro que actúa sobre la respuesta.', 'En las dos rutas, dentro de "Más condiciones y filtros", completá "Header en la respuesta": <code>X-Gateway</code> = <code>fuerzagym</code>.'] },
   { t: 'El ejemplo del apunte', c: 'Como en el Apunte 19: un pedido a <code>/echo</code> tiene que llegar a <b>postman-echo</b> como <code>/get</code>. Y que lo demás de FuerzaGym siga andando.',
     serv: ['echo', 'maq', 'pla'], ini: [R('maquinas', '/api/maquinas/**', 'maq'), R('planes', '/api/planes/**', 'pla')],
     pedidos: [['GET', '/echo', null, 'echo', '/get'], ['GET', '/api/maquinas/2', null, 'maq', '/api/maquinas/2'], ['GET', '/api/planes/3', null, 'pla', '/api/planes/3']],
@@ -344,13 +503,15 @@ const guardar = () => { try { localStorage.setItem(CLAVE, JSON.stringify(estado)
 const copia = o => JSON.parse(JSON.stringify(o));
 let rutasNivel = [], ed = null, pistasVistas = 0;
 
-function pintarCamino() {
-  $('#camino').innerHTML = NIVELES.map((n, i) => {
+function pintarRiel() {
+  $('#riel').innerHTML = NIVELES.map((n, i) => {
     const e = estado.estrellas[i];
-    return '<button data-i="' + i + '" class="' + (i === estado.nivel ? 'actual ' : '') + (e !== undefined ? 'hecho' : '') + '">' + (i + 1) +
-      '<small>' + (e !== undefined ? '★'.repeat(e) + '☆'.repeat(3 - e) : '☆☆☆') + '</small></button>';
+    const puntos = [0, 1, 2].map(k => '<i class="' + (e !== undefined && k < e ? 'on' : '') + '"></i>').join('');
+    const clase = (i === estado.nivel ? 'actual' : (e !== undefined ? 'hecho' : ''));
+    return '<button data-i="' + i + '" class="' + clase + '" title="Nivel ' + (i + 1) + ': ' + esc(NIVELES[i].t) + '">' +
+      (i + 1) + '<span class="puntos">' + puntos + '</span></button>';
   }).join('');
-  $$('#camino button').forEach(b => b.onclick = () => { estado.nivel = +b.dataset.i; guardar(); cargarNivel(); });
+  $$('#riel button').forEach(b => b.onclick = () => { estado.nivel = +b.dataset.i; guardar(); cargarNivel(); });
 }
 function nombreSrv(k) { return k ? '<span style="color:' + SERVICIOS[k].c + ';font-weight:600">' + SERVICIOS[k].n + '</span>' : '<span class="res-mal">404 del gateway</span>'; }
 function pintarPedidos(resultados) {
@@ -363,21 +524,35 @@ function pintarPedidos(resultados) {
     return '<tr><td><code>' + p[0] + ' ' + p[1] + '</code>' + (p[2] ? '<br><span class="muted">header ' + esc(Object.keys(p[2])[0]) + ': ' + esc(Object.values(p[2])[0]) + '</span>' : '') + '</td><td>' + esperado + '</td><td>' + llega + '</td></tr>';
   }).join('');
 }
+
+// Las pistas se muestran de a una: el boton va diciendo cuantas quedan
+function pintarPistas() {
+  const n = NIVELES[estado.nivel];
+  const vistas = n.pistas.slice(0, pistasVistas)
+    .map((p, i) => '<div class="pista"><b>PISTA ' + (i + 1) + ' DE ' + n.pistas.length + '</b>' + p + '</div>').join('');
+  const quedan = n.pistas.length - pistasVistas;
+  const boton = quedan > 0
+    ? '<button class="btn sec chico" id="nPista">' + (pistasVistas === 0 ? 'Necesito una pista' : 'Dame otra pista') +
+      ' <span class="muted">(' + quedan + ')</span></button>'
+    : '<span class="muted" style="font-size:14px">No quedan más pistas.</span>';
+  $('#nPistas').innerHTML = vistas + boton;
+  if ($('#nPista')) $('#nPista').onclick = () => { pistasVistas++; pintarPistas(); };
+}
+
 function cargarNivel() {
   const n = NIVELES[estado.nivel];
   rutasNivel = estado.rutas[estado.nivel] ? copia(estado.rutas[estado.nivel]) : copia(n.ini);
   pistasVistas = 0;
-  $('#nNum').textContent = 'Nivel ' + (estado.nivel + 1) + ' de ' + NIVELES.length;
+  $('#nNum').textContent = 'NIVEL ' + (estado.nivel + 1) + ' DE ' + NIVELES.length;
   $('#nTitulo').textContent = n.t;
   $('#nConsigna').innerHTML = n.c;
   $('#nServicios').innerHTML = n.serv.map(k => '<span class="servicio" style="--c:' + SERVICIOS[k].c + '">' + SERVICIOS[k].n + ' · ' + SERVICIOS[k].uri.replace('http://', '') + '</span>').join('');
-  $('#nPistas').innerHTML = n.pistas.map((_, i) => '<button class="btn sec chico" data-p="' + i + '" style="margin:4px 6px 0 0">Pista ' + (i + 1) + '</button>').join('') + n.pistas.map((p, i) => '<div class="pista" id="pi' + i + '">' + p + '</div>').join('');
-  $$('#nPistas [data-p]').forEach(b => b.onclick = () => { $('#pi' + b.dataset.p).classList.toggle('on'); pistasVistas = Math.max(pistasVistas, +b.dataset.p + 1); });
+  pintarPistas();
   $('#nResultado').className = 'resultado';
   ed = editor($('#nRutas'), rutasNivel, () => { estado.rutas[estado.nivel] = copia(rutasNivel); guardar(); $('#nCodigo').innerHTML = aJava(rutasNivel); });
   $('#nCodigo').innerHTML = aJava(rutasNivel);
   pintarPedidos(null);
-  pintarCamino();
+  pintarRiel();
 }
 function probar() {
   const n = NIVELES[estado.nivel];
@@ -395,14 +570,15 @@ function probar() {
     const e = Math.max(1, 3 - pistasVistas - Math.min(1, estado.intentos[estado.nivel] - 1));
     estado.estrellas[estado.nivel] = Math.max(estado.estrellas[estado.nivel] || 0, e);
     el.className = 'resultado on bien';
-    el.innerHTML = '<span class="estrellas">' + '★'.repeat(e) + '☆'.repeat(3 - e) + '</span><br>¡Todos los pedidos llegan donde tienen que llegar!' +
+    el.innerHTML = '<span class="estrellas">' + '★'.repeat(e) + '☆'.repeat(3 - e) + '</span>' +
+      '<span class="festejo">¡Todos los pedidos llegan donde tienen que llegar!</span>' +
       (estado.nivel < NIVELES.length - 1 ? ' <button class="btn chico" id="nSig" style="margin-left:8px">Siguiente nivel</button>' : ' Terminaste los ocho niveles.');
     if ($('#nSig')) $('#nSig').onclick = () => { estado.nivel++; guardar(); cargarNivel(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   } else {
     el.className = 'resultado on mal';
     el.textContent = bien + ' de ' + res.length + ' pedidos llegan bien. Mirá la columna "Llega a" y ajustá las rutas.';
   }
-  guardar(); pintarCamino();
+  guardar(); pintarRiel();
 }
 $('#nAgregar').onclick = () => ed.agregar();
 $('#nProbar').onclick = probar;
